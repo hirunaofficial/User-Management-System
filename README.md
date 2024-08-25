@@ -1,8 +1,8 @@
-# React + Vite
+# User Management System
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A simple User Management System built with React and Material-UI. This application allows users to add, edit, and delete user records. The user list is displayed dynamically, and a popup dialog is used for both adding and editing users.
 
-Currently, two official plugins are available:
+## Technologies Used
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **React**: JavaScript library for building user interfaces.
+- **Material-UI**: A popular React UI framework for building responsive and accessible user interfaces.
