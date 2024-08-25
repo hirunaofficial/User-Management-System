@@ -71,22 +71,32 @@ const UserManagement = () => {
       </Button>
 
       <Typography variant="h6" gutterBottom>User List</Typography>
-      <List>
-        {users.map((user) => (
-          <ListItem key={user.id} secondaryAction={
-            <>
-              <IconButton edge="end" aria-label="edit" onClick={() => openEditUserDialog(user)}>
-                <Edit />
-              </IconButton>
-              <IconButton edge="end" aria-label="delete" onClick={() => deleteUser(user.id)}>
-                <Delete />
-              </IconButton>
-            </>
-          }>
-            <ListItemText primary={user.name} secondary={user.email} />
-          </ListItem>
-        ))}
-      </List>
+
+      {users.length === 0 ? (
+        <Typography variant="body1" color="textSecondary">
+          No users found.
+        </Typography>
+      ) : (
+        <List>
+          {users.map((user) => (
+            <ListItem
+              key={user.id}
+              secondaryAction={
+                <>
+                  <IconButton edge="end" aria-label="edit" onClick={() => openEditUserDialog(user)}>
+                    <Edit />
+                  </IconButton>
+                  <IconButton edge="end" aria-label="delete" onClick={() => deleteUser(user.id)}>
+                    <Delete />
+                  </IconButton>
+                </>
+              }
+            >
+              <ListItemText primary={user.name} secondary={user.email} />
+            </ListItem>
+          ))}
+        </List>
+      )}
 
       <Dialog open={isDialogOpen} onClose={() => setIsDialogOpen(false)}>
         <DialogTitle>{currentUser.id === null ? 'Add User' : 'Edit User'}</DialogTitle>
