@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Button,
   TextField,
@@ -14,21 +14,39 @@ import {
   Container,
 } from '@mui/material';
 import { Edit, Delete, Add } from '@mui/icons-material';
+import axios from 'axios';
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
   const [currentUser, setCurrentUser] = useState({ id: null, name: '', email: '' });
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [emailError, setEmailError] = useState('');
+
+  // Fetch users from the API
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await axios.get('http://localhost:3001/api/users');
+        setUsers(response.data);
+      } catch (error) {
+        console.error('Error fetching users:', error);
+      }
+    };
+
+    fetchUsers();
+  }, []);
 
   // Open the dialog for adding a new user
   const openAddUserDialog = () => {
     setCurrentUser({ id: null, name: '', email: '' });
+    setEmailError('');
     setIsDialogOpen(true);
   };
 
   // Open the dialog for editing an existing user
   const openEditUserDialog = (user) => {
     setCurrentUser(user);
+    setEmailError('');
     setIsDialogOpen(true);
   };
 
@@ -37,23 +55,45 @@ const UserManagement = () => {
     setCurrentUser({ ...currentUser, [e.target.name]: e.target.value });
   };
 
+  // Validate email format
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
   // Save the new or edited user
-  const saveUser = () => {
+  const saveUser = async () => {
     if (currentUser.name && currentUser.email) {
-      if (currentUser.id === null) {
-        // Add new user
-        setUsers([...users, { ...currentUser, id: Date.now() }]);
-      } else {
-        // Update existing user
-        setUsers(users.map((user) => (user.id === currentUser.id ? currentUser : user)));
+      if (!validateEmail(currentUser.email)) {
+        setEmailError('Please enter a valid email address.');
+        return;
       }
-      setIsDialogOpen(false);
+
+      try {
+        if (currentUser.id === null) {
+          // Add new user via API
+          const response = await axios.post('http://localhost:3001/api/users', currentUser);
+          setUsers([...users, response.data]);
+        } else {
+          // Update existing user via API
+          const response = await axios.put(`http://localhost:3001/api/users/${currentUser.id}`, currentUser);
+          setUsers(users.map((user) => (user.id === currentUser.id ? response.data : user)));
+        }
+        setIsDialogOpen(false);
+      } catch (error) {
+        console.error('Error saving user:', error);
+      }
     }
   };
 
   // Delete a user
-  const deleteUser = (id) => {
-    setUsers(users.filter((user) => user.id !== id));
+  const deleteUser = async (id) => {
+    try {
+      await axios.delete(`http://localhost:3001/api/users/${id}`);
+      setUsers(users.filter((user) => user.id !== id));
+    } catch (error) {
+      console.error('Error deleting user:', error);
+    }
   };
 
   return (
@@ -118,6 +158,8 @@ const UserManagement = () => {
             margin="normal"
             value={currentUser.email}
             onChange={handleChange}
+            error={!!emailError}
+            helperText={emailError}
           />
         </DialogContent>
         <DialogActions>
