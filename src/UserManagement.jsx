@@ -1,27 +1,54 @@
 import React, { useState } from 'react';
+import {
+  Button,
+  TextField,
+  Typography,
+  List,
+  ListItem,
+  ListItemText,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Container,
+} from '@mui/material';
+import { Edit, Delete, Add } from '@mui/icons-material';
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
-  const [newUser, setNewUser] = useState({ name: '', email: '' });
-  const [editingUser, setEditingUser] = useState(null);
+  const [currentUser, setCurrentUser] = useState({ id: null, name: '', email: '' });
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  // Add a new user
-  const addUser = () => {
-    if (newUser.name && newUser.email) {
-      setUsers([...users, { ...newUser, id: Date.now() }]);
-      setNewUser({ name: '', email: '' });
+  // Open the dialog for adding a new user
+  const openAddUserDialog = () => {
+    setCurrentUser({ id: null, name: '', email: '' });
+    setIsDialogOpen(true);
+  };
+
+  // Open the dialog for editing an existing user
+  const openEditUserDialog = (user) => {
+    setCurrentUser(user);
+    setIsDialogOpen(true);
+  };
+
+  // Handle input change
+  const handleChange = (e) => {
+    setCurrentUser({ ...currentUser, [e.target.name]: e.target.value });
+  };
+
+  // Save the new or edited user
+  const saveUser = () => {
+    if (currentUser.name && currentUser.email) {
+      if (currentUser.id === null) {
+        // Add new user
+        setUsers([...users, { ...currentUser, id: Date.now() }]);
+      } else {
+        // Update existing user
+        setUsers(users.map((user) => (user.id === currentUser.id ? currentUser : user)));
+      }
+      setIsDialogOpen(false);
     }
-  };
-
-  // Edit an existing user
-  const editUser = (id) => {
-    const user = users.find((user) => user.id === id);
-    setEditingUser(user);
-  };
-
-  const saveEdit = () => {
-    setUsers(users.map((user) => (user.id === editingUser.id ? editingUser : user)));
-    setEditingUser(null);
   };
 
   // Delete a user
@@ -30,48 +57,69 @@ const UserManagement = () => {
   };
 
   return (
-    <div>
-      <h1>User Management System</h1>
+    <Container maxWidth="sm" style={{ marginTop: '50px' }}>
+      <Typography variant="h4" gutterBottom>User Management System</Typography>
 
-      <div>
-        <h2>{editingUser ? 'Edit User' : 'Add User'}</h2>
-        <input
-          type="text"
-          placeholder="Name"
-          value={editingUser ? editingUser.name : newUser.name}
-          onChange={(e) =>
-            editingUser
-              ? setEditingUser({ ...editingUser, name: e.target.value })
-              : setNewUser({ ...newUser, name: e.target.value })
-          }
-        />
-        <input
-          type="email"
-          placeholder="Email"
-          value={editingUser ? editingUser.email : newUser.email}
-          onChange={(e) =>
-            editingUser
-              ? setEditingUser({ ...editingUser, email: e.target.value })
-              : setNewUser({ ...newUser, email: e.target.value })
-          }
-        />
-        <button onClick={editingUser ? saveEdit : addUser}>
-          {editingUser ? 'Save Changes' : 'Add User'}
-        </button>
-        {editingUser && <button onClick={() => setEditingUser(null)}>Cancel</button>}
-      </div>
+      <Button
+        variant="contained"
+        color="primary"
+        startIcon={<Add />}
+        onClick={openAddUserDialog}
+        style={{ marginBottom: '20px' }}
+      >
+        Add User
+      </Button>
 
-      <h2>User List</h2>
-      <ul>
+      <Typography variant="h6" gutterBottom>User List</Typography>
+      <List>
         {users.map((user) => (
-          <li key={user.id}>
-            {user.name} ({user.email})
-            <button onClick={() => editUser(user.id)}>Edit</button>
-            <button onClick={() => deleteUser(user.id)}>Delete</button>
-          </li>
+          <ListItem key={user.id} secondaryAction={
+            <>
+              <IconButton edge="end" aria-label="edit" onClick={() => openEditUserDialog(user)}>
+                <Edit />
+              </IconButton>
+              <IconButton edge="end" aria-label="delete" onClick={() => deleteUser(user.id)}>
+                <Delete />
+              </IconButton>
+            </>
+          }>
+            <ListItemText primary={user.name} secondary={user.email} />
+          </ListItem>
         ))}
-      </ul>
-    </div>
+      </List>
+
+      <Dialog open={isDialogOpen} onClose={() => setIsDialogOpen(false)}>
+        <DialogTitle>{currentUser.id === null ? 'Add User' : 'Edit User'}</DialogTitle>
+        <DialogContent>
+          <TextField
+            label="Name"
+            name="name"
+            variant="outlined"
+            fullWidth
+            margin="normal"
+            value={currentUser.name}
+            onChange={handleChange}
+          />
+          <TextField
+            label="Email"
+            name="email"
+            variant="outlined"
+            fullWidth
+            margin="normal"
+            value={currentUser.email}
+            onChange={handleChange}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={saveUser} color="primary" variant="contained">
+            {currentUser.id === null ? 'Add User' : 'Save Changes'}
+          </Button>
+          <Button onClick={() => setIsDialogOpen(false)} color="secondary">
+            Cancel
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Container>
   );
 };
 
